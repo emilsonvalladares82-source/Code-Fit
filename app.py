@@ -51,6 +51,7 @@ def setup():
         q.execute("""CREATE TABLE IF NOT EXISTS rutinas(id SERIAL PRIMARY KEY,nombre VARCHAR(120) NOT NULL,objetivo VARCHAR(50) NOT NULL,nivel VARCHAR(30) NOT NULL,duracion INT NOT NULL DEFAULT 30,descripcion TEXT NOT NULL)""")
         q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='rutinas'");routine_cols={x[0] for x in q.fetchall()}
         if 'duracion' not in routine_cols:q.execute("ALTER TABLE rutinas ADD COLUMN duracion INT NOT NULL DEFAULT 30")
+        if 'descripcion' not in routine_cols:q.execute("ALTER TABLE rutinas ADD COLUMN descripcion TEXT NOT NULL DEFAULT ''")
         q.execute("""CREATE TABLE IF NOT EXISTS rutina_ejercicios(id SERIAL PRIMARY KEY,rutina_id INT NOT NULL,ejercicio_id INT NOT NULL,series INT DEFAULT 3,repeticiones VARCHAR(40) DEFAULT '10-12',orden INT DEFAULT 1,FOREIGN KEY(rutina_id) REFERENCES rutinas(id) ON DELETE CASCADE,FOREIGN KEY(ejercicio_id) REFERENCES ejercicios(id) ON DELETE CASCADE)""")
         q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='rutina_ejercicios'");link_cols={x[0] for x in q.fetchall()}
         if 'orden' not in link_cols:q.execute("ALTER TABLE rutina_ejercicios ADD COLUMN orden INT DEFAULT 1")

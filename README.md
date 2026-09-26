@@ -8,11 +8,12 @@ Incluye: registro/login, perfil, IMC orientativo, dashboard progresivo, ejercici
 1. Instala Python y PostgreSQL.
 2. Activa el entorno: `venv\Scripts\activate.bat`
 3. `pip install -r requirements.txt`
-4. Configura `DATABASE_URL` en tu entorno o archivo `.env` con la URL de PostgreSQL.
-5. `python app.py`
-6. Abre `http://127.0.0.1:5000`
+4. Configura `DATABASE_URL` en tu entorno o archivo `.env` con la URL de PostgreSQL. No subas `.env` a GitHub.
+5. Ejecuta `python crear_tablas.py` para crear las tablas y los datos iniciales.
+6. Ejecuta `python app.py`
+7. Abre `http://127.0.0.1:5000`
 
-La app crea/actualiza las tablas automáticamente al ejecutarse con `python app.py`. Para desarrollo local, `DATABASE_URL` puede tener el formato `postgresql://usuario:contraseña@localhost:5432/codefit`. `database/codefit.sql` contiene el esquema manual.
+Para Render, configura `DATABASE_URL` en las variables de entorno del servicio y usa como Start Command `python crear_tablas.py && gunicorn app:app`. El script es idempotente y crea las cinco tablas que usa la app. Para desarrollo local, `DATABASE_URL` puede tener el formato `postgresql://usuario:contraseña@localhost:5432/codefit`. `database/codefit.sql` contiene el esquema manual.
 
 El asistente usa OpenAI si `OPENAI_API_KEY` está configurada; si no, funciona con un respaldo local para que el proyecto siga siendo demostrable. No incluye ninguna clave privada.
 
