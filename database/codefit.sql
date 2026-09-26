@@ -1,14 +1,8 @@
-CREATE DATABASE IF NOT EXISTS codefit
-    CHARACTER SET utf8mb4
-    COLLATE utf8mb4unicode_ci;
-
-USE codefit;
-
 CREATE TABLE IF NOT EXISTS usuarios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     correo VARCHAR(150) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
+    contraseña VARCHAR(255) NOT NULL,
     edad INT NULL,
     peso DECIMAL(6,2) NULL,
     altura DECIMAL(4,2) NULL,
@@ -20,7 +14,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 );
 
 CREATE TABLE IF NOT EXISTS ejercicios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     nombre VARCHAR(120) NOT NULL,
     categoria VARCHAR(60) NOT NULL,
     dificultad VARCHAR(30) NOT NULL,
@@ -30,7 +24,7 @@ CREATE TABLE IF NOT EXISTS ejercicios (
 );
 
 CREATE TABLE IF NOT EXISTS rutinas (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     nombre VARCHAR(120) NOT NULL,
     objetivo VARCHAR(50) NOT NULL,
     nivel VARCHAR(30) NOT NULL,
@@ -39,7 +33,7 @@ CREATE TABLE IF NOT EXISTS rutinas (
 );
 
 CREATE TABLE IF NOT EXISTS rutina_ejercicios (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     rutina_id INT NOT NULL,
     ejercicio_id INT NOT NULL,
     series INT DEFAULT 3,
@@ -54,7 +48,7 @@ CREATE TABLE IF NOT EXISTS rutina_ejercicios (
 );
 
 CREATE TABLE IF NOT EXISTS progreso (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     usuario_id INT NOT NULL,
     fecha DATE NOT NULL,
     peso DECIMAL(6,2) NULL,

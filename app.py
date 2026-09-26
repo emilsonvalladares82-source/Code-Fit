@@ -3,28 +3,29 @@ import logging
 from contextlib import contextmanager
 from datetime import date
 from functools import wraps
-import mysql.connector
-from mysql.connector import Error
+import psycopg2
+from psycopg2 import Error
+from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from flask import Flask,render_template,request,redirect,url_for,session,flash,jsonify,abort
 from werkzeug.security import generate_password_hash,check_password_hash
 load_dotenv()
 app=Flask(__name__);app.secret_key=os.getenv('FLASK_SECRET_KEY','change-me')
 logging.basicConfig(level=logging.INFO)
-DB=dict(host=os.getenv('MYSQL_HOST','localhost'),port=int(os.getenv('MYSQL_PORT','3306')),user=os.getenv('MYSQL_USER','root'),password=os.getenv('MYSQL_PASSWORD',''),database=os.getenv('MYSQL_DATABASE','codefit'))
+DATABASE_URL=os.getenv('DATABASE_URL')
 
-def db(server=False):
-    c=DB.copy()
-    if server:c.pop('database',None)
-    return mysql.connector.connect(**c)
+def db():
+    if not DATABASE_URL:
+        raise RuntimeError('DATABASE_URL no está configurada.')
+    return psycopg2.connect(DATABASE_URL)
 
 @contextmanager
-def db_cursor(dictionary=False, server=False):
+def db_cursor(dictionary=False):
     connection = None
     cursor = None
     try:
-        connection = db(server)
-        cursor = connection.cursor(dictionary=dictionary)
+        connection = db()
+        cursor = connection.cursor(cursor_factory=RealDictCursor) if dictionary else connection.cursor()
         yield connection, cursor
     finally:
         if cursor is not None:
@@ -36,24 +37,24 @@ def setup():
     c = None
     q = None
     try:
-        c=db(True);q=c.cursor();q.execute(f"CREATE DATABASE IF NOT EXISTS `{DB['database']}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");c.commit();q.close();c.close();c=db();q=c.cursor()
-        q.execute("""CREATE TABLE IF NOT EXISTS usuarios(id INT AUTO_INCREMENT PRIMARY KEY,nombre VARCHAR(100) NOT NULL,correo VARCHAR(150) NOT NULL UNIQUE,contraseña VARCHAR(255) NOT NULL,edad INT NULL,peso DECIMAL(6,2) NULL,altura DECIMAL(4,2) NULL,objetivo VARCHAR(50) DEFAULT 'mejorar_condicion',nivel VARCHAR(30) DEFAULT 'principiante',dias_disponibles VARCHAR(255) DEFAULT '',minutos_disponibles INT DEFAULT 30,fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-        q.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='usuarios'",(DB['database'],));cols={x[0] for x in q.fetchall()}
+        c=db();q=c.cursor()
+        q.execute("""CREATE TABLE IF NOT EXISTS usuarios(id SERIAL PRIMARY KEY,nombre VARCHAR(100) NOT NULL,correo VARCHAR(150) NOT NULL UNIQUE,contraseña VARCHAR(255) NOT NULL,edad INT NULL,peso DECIMAL(6,2) NULL,altura DECIMAL(4,2) NULL,objetivo VARCHAR(50) DEFAULT 'mejorar_condicion',nivel VARCHAR(30) DEFAULT 'principiante',dias_disponibles VARCHAR(255) DEFAULT '',minutos_disponibles INT DEFAULT 30,fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='usuarios'");cols={x[0] for x in q.fetchall()}
         for n,t in {'edad':'INT NULL','peso':'DECIMAL(6,2) NULL','altura':'DECIMAL(4,2) NULL','objetivo':"VARCHAR(50) DEFAULT 'mejorar_condicion'",'nivel':"VARCHAR(30) DEFAULT 'principiante'",'dias_disponibles':"VARCHAR(255) DEFAULT ''",'minutos_disponibles':'INT DEFAULT 30'}.items():
             if n not in cols:q.execute(f'ALTER TABLE usuarios ADD COLUMN {n} {t}')
-        q.execute("SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='usuarios' AND COLUMN_NAME='dias_disponibles'",(DB['database'],));days_type=q.fetchone()[0]
-        if days_type not in ('varchar','text'):q.execute("ALTER TABLE usuarios MODIFY COLUMN dias_disponibles VARCHAR(255) NULL DEFAULT NULL")
-        q.execute("""CREATE TABLE IF NOT EXISTS ejercicios(id INT AUTO_INCREMENT PRIMARY KEY,nombre VARCHAR(120) NOT NULL,categoria VARCHAR(60) NOT NULL,dificultad VARCHAR(30) NOT NULL,descripcion TEXT NOT NULL,duracion VARCHAR(40) DEFAULT '',equipo VARCHAR(120) DEFAULT 'Sin equipo')""")
-        q.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='ejercicios'",(DB['database'],));exercise_cols={x[0] for x in q.fetchall()}
+        q.execute("SELECT data_type FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='usuarios' AND column_name='dias_disponibles'");days_type=q.fetchone()[0]
+        if days_type not in ('character varying','text'):q.execute("ALTER TABLE usuarios ALTER COLUMN dias_disponibles TYPE VARCHAR(255)")
+        q.execute("""CREATE TABLE IF NOT EXISTS ejercicios(id SERIAL PRIMARY KEY,nombre VARCHAR(120) NOT NULL,categoria VARCHAR(60) NOT NULL,dificultad VARCHAR(30) NOT NULL,descripcion TEXT NOT NULL,duracion VARCHAR(40) DEFAULT '',equipo VARCHAR(120) DEFAULT 'Sin equipo')""")
+        q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='ejercicios'");exercise_cols={x[0] for x in q.fetchall()}
         for n,t in {'dificultad':"VARCHAR(30) NOT NULL DEFAULT 'Principiante'",'duracion':"VARCHAR(40) DEFAULT ''",'equipo':"VARCHAR(120) DEFAULT 'Sin equipo'"}.items():
             if n not in exercise_cols:q.execute(f'ALTER TABLE ejercicios ADD COLUMN {n} {t}')
-        q.execute("""CREATE TABLE IF NOT EXISTS rutinas(id INT AUTO_INCREMENT PRIMARY KEY,nombre VARCHAR(120) NOT NULL,objetivo VARCHAR(50) NOT NULL,nivel VARCHAR(30) NOT NULL,duracion INT NOT NULL DEFAULT 30,descripcion TEXT NOT NULL)""")
-        q.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='rutinas'",(DB['database'],));routine_cols={x[0] for x in q.fetchall()}
-        if 'duracion' not in routine_cols:q.execute("ALTER TABLE rutinas ADD COLUMN duracion INT NOT NULL DEFAULT 30 AFTER nivel")
-        q.execute("""CREATE TABLE IF NOT EXISTS rutina_ejercicios(id INT AUTO_INCREMENT PRIMARY KEY,rutina_id INT NOT NULL,ejercicio_id INT NOT NULL,series INT DEFAULT 3,repeticiones VARCHAR(40) DEFAULT '10-12',orden INT DEFAULT 1,FOREIGN KEY(rutina_id) REFERENCES rutinas(id) ON DELETE CASCADE,FOREIGN KEY(ejercicio_id) REFERENCES ejercicios(id) ON DELETE CASCADE)""")
-        q.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=%s AND TABLE_NAME='rutina_ejercicios'",(DB['database'],));link_cols={x[0] for x in q.fetchall()}
-        if 'orden' not in link_cols:q.execute("ALTER TABLE rutina_ejercicios ADD COLUMN orden INT DEFAULT 1 AFTER repeticiones")
-        q.execute("""CREATE TABLE IF NOT EXISTS progreso(id INT AUTO_INCREMENT PRIMARY KEY,usuario_id INT NOT NULL,fecha DATE NOT NULL,peso DECIMAL(6,2) NULL,minutos INT DEFAULT 0,entrenamiento VARCHAR(150) DEFAULT '',notas TEXT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE)""")
+        q.execute("""CREATE TABLE IF NOT EXISTS rutinas(id SERIAL PRIMARY KEY,nombre VARCHAR(120) NOT NULL,objetivo VARCHAR(50) NOT NULL,nivel VARCHAR(30) NOT NULL,duracion INT NOT NULL DEFAULT 30,descripcion TEXT NOT NULL)""")
+        q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='rutinas'");routine_cols={x[0] for x in q.fetchall()}
+        if 'duracion' not in routine_cols:q.execute("ALTER TABLE rutinas ADD COLUMN duracion INT NOT NULL DEFAULT 30")
+        q.execute("""CREATE TABLE IF NOT EXISTS rutina_ejercicios(id SERIAL PRIMARY KEY,rutina_id INT NOT NULL,ejercicio_id INT NOT NULL,series INT DEFAULT 3,repeticiones VARCHAR(40) DEFAULT '10-12',orden INT DEFAULT 1,FOREIGN KEY(rutina_id) REFERENCES rutinas(id) ON DELETE CASCADE,FOREIGN KEY(ejercicio_id) REFERENCES ejercicios(id) ON DELETE CASCADE)""")
+        q.execute("SELECT column_name FROM information_schema.columns WHERE table_schema=current_schema() AND table_name='rutina_ejercicios'");link_cols={x[0] for x in q.fetchall()}
+        if 'orden' not in link_cols:q.execute("ALTER TABLE rutina_ejercicios ADD COLUMN orden INT DEFAULT 1")
+        q.execute("""CREATE TABLE IF NOT EXISTS progreso(id SERIAL PRIMARY KEY,usuario_id INT NOT NULL,fecha DATE NOT NULL,peso DECIMAL(6,2) NULL,minutos INT DEFAULT 0,entrenamiento VARCHAR(150) DEFAULT '',notas TEXT,FOREIGN KEY(usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE)""")
         q.execute('SELECT COUNT(*) FROM ejercicios')
         if q.fetchone()[0]==0:
             ex=[('Sentadilla','Piernas','Principiante','Trabaja piernas y glúteos con movimiento controlado.','3 x 10-12','Sin equipo'),('Flexiones','Pecho','Principiante','Trabaja pecho, hombros y tríceps.','3 x 8-12','Sin equipo'),('Puente de glúteos','Glúteos','Principiante','Eleva la cadera de forma controlada.','3 x 12-15','Sin equipo'),('Plancha','Core','Principiante','Mantén el cuerpo alineado y activa el abdomen.','3 x 20-40 s','Sin equipo'),('Zancadas','Piernas','Intermedio','Alterna las piernas y controla el descenso.','3 x 10 por pierna','Sin equipo'),('Mountain climbers','Cardio','Intermedio','Alterna rodillas hacia el pecho desde plancha.','3 x 30 s','Sin equipo'),('Remo con mochila','Espalda','Intermedio','Remo con mochila ligera y espalda neutra.','3 x 10-12','Mochila'),('Sentadilla con salto','Cardio','Intermedio','Sentadilla con salto y aterrizaje suave.','3 x 8-10','Sin equipo'),('Bird-dog','Core','Principiante','Extiende brazo y pierna contrarios manteniendo estabilidad.','3 x 8 por lado','Sin equipo'),('Elevaciones de talones','Pantorrillas','Principiante','Eleva y baja talones lentamente.','3 x 15','Sin equipo')]
@@ -65,7 +66,7 @@ def setup():
             links=[('Inicio Activo','Sentadilla',3,'10-12',1),('Inicio Activo','Flexiones',3,'8-12',2),('Inicio Activo','Puente de glúteos',3,'12-15',3),('Inicio Activo','Plancha',3,'20-40 s',4),('Base Fuerza','Sentadilla',3,'10-12',1),('Base Fuerza','Flexiones',3,'8-12',2),('Base Fuerza','Zancadas',3,'10 por pierna',3),('Base Fuerza','Plancha',3,'30-45 s',4),('Cardio Inicial','Mountain climbers',3,'30 s',1),('Cardio Inicial','Sentadilla',3,'12',2),('Cardio Inicial','Bird-dog',3,'8 por lado',3),('Cardio Inicial','Elevaciones de talones',3,'15',4),('Masa y Fuerza','Sentadilla',4,'8-12',1),('Masa y Fuerza','Flexiones',4,'8-12',2),('Masa y Fuerza','Remo con mochila',4,'10-12',3),('Masa y Fuerza','Zancadas',3,'10 por pierna',4),('Condición Pro','Zancadas',3,'10 por pierna',1),('Condición Pro','Flexiones',3,'10-15',2),('Condición Pro','Mountain climbers',3,'40 s',3),('Condición Pro','Plancha',3,'40-60 s',4)]
             q.executemany('INSERT INTO rutina_ejercicios(rutina_id,ejercicio_id,series,repeticiones,orden) VALUES(%s,%s,%s,%s,%s)',[(rt[r],ex[e],s,rep,o) for r,e,s,rep,o in links])
         c.commit();q.close();c.close();return True
-    except Error as e:print('MySQL:',e);return False
+    except Error as e:print('PostgreSQL:',e);return False
     finally:
         if q is not None:
             q.close()
