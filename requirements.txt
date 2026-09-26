@@ -3,3 +3,5 @@ mysql-connector-python>=9.0,<10
 python-dotenv>=1.0,<2
 openai>=1.0,<2
 gunicorn
+psycopg2-binary
+playhouse
