@@ -1,0 +1,38 @@
+{%extends 'base.html'%}
+{%block title%}Ejercicios · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">PASO 03 · MOVIMIENTO</span>
+    <h1>Biblioteca de <span>ejercicios</span></h1>
+    <p>Consulta ejercicios por categoría y nivel.</p>
+</section>
+<form class="filters glass">
+    <input name="q" placeholder="Buscar..." value="{{q}}">
+    <select name="categoria">
+        <option value="">Todas</option>
+        {%for c in ['Piernas','Pecho','Glúteos','Core','Cardio','Espalda','Pantorrillas']%}
+        <option {%if category==c%}selected{%endif%}>{{c}}</option>
+        {%endfor%}
+    </select>
+    <select name="nivel">
+        <option value="">Todos</option>
+        <option {%if level=='Principiante'%}selected{%endif%}>Principiante</option>
+        <option {%if level=='Intermedio'%}selected{%endif%}>Intermedio</option>
+    </select>
+    <button class="btn primary">Filtrar</button>
+</form>
+<section class="cards">
+    {%for e in exercises%}
+    <article class="card glass">
+        <span class="pill">{{e.categoria}} · {{e.dificultad}}</span>
+        <h3>{{e.nombre}}</h3>
+        <p>{{e.descripcion}}</p>
+        <small>{{e.duracion}} · {{e.equipo}}</small>
+    </article>
+    {%else%}
+    <div class="card glass">
+        <h2>No encontramos ejercicios</h2>
+    </div>
+    {%endfor%}
+</section>
+{%endblock%}

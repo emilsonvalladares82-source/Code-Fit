@@ -1,0 +1,37 @@
+{%extends 'base.html'%}
+{%block title%}IMC · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">PASO 01 · CONÓCETE</span>
+    <h1>Calcula tu <span>IMC</span></h1>
+    <p>Resultado orientativo para continuar con tu perfil.</p>
+</section>
+<section class="two">
+    <div class="card glass">
+        <h2>Tus datos</h2>
+        <form class="form" method="post">
+            <label>
+                Peso (kg)
+                <input type="number" name="peso" step="0.1" required value="{{user.peso or ''}}">
+            </label>
+            <label>
+                Altura (m)
+                <input type="number" name="altura" step="0.01" required value="{{user.altura or ''}}">
+            </label>
+            <button class="btn primary">Calcular IMC</button>
+        </form>
+    </div>
+    <div class="card glass result">
+        {%if result%}
+        <span class="eyebrow">RESULTADO</span>
+        <strong>{{result}}</strong>
+        <h2>{{category}}</h2>
+        <p>El IMC es una referencia general, no un diagnóstico.</p>
+        <a class="btn primary" href="{{url_for('dashboard')}}">Continuar</a>
+        {%else%}
+        <h2>Tu resultado aparecerá aquí</h2>
+        <p class="muted">Completa peso y altura.</p>
+        {%endif%}
+    </div>
+</section>
+{%endblock%}

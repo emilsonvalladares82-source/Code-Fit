@@ -1,0 +1,21 @@
+{%extends 'base.html'%}
+{%block title%}{{routine.nombre}} · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">{{routine.nivel}} · {{routine.duracion}} MIN</span>
+    <h1>{{routine.nombre}}</h1>
+    <p>{{routine.descripcion}}</p>
+</section>
+<section class="card glass">
+    <div class="list">
+        {%for e in exercises%}
+        <div>
+            <b>{{loop.index}}. {{e.nombre}}</b>
+            <span>{{e.series}} × {{e.repeticiones}}</span>
+            <small>{{e.descripcion}}</small>
+        </div>
+        {%endfor%}
+    </div>
+    <a class="btn primary" href="{{url_for('progreso')}}">Registrar entrenamiento</a>
+</section>
+{%endblock%}

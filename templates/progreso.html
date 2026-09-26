@@ -1,0 +1,49 @@
+{%extends 'base.html'%}
+{%block title%}Progreso · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">PASO 05 · CONSTANCIA</span>
+    <h1>Registro de <span>progreso</span></h1>
+    <p>Guarda entrenamientos y observaciones.</p>
+</section>
+<section class="two">
+    <form class="card glass form" method="post">
+        <h2>Nuevo registro</h2>
+        <label>
+            Fecha
+            <input type="date" name="fecha" value="{{today}}">
+        </label>
+        <label>
+            Peso
+            <input type="number" step="0.1" name="peso">
+        </label>
+        <label>
+            Minutos
+            <input type="number" name="minutos" value="30">
+        </label>
+        <label>
+            Entrenamiento
+            <input name="entrenamiento">
+        </label>
+        <label>
+            Notas
+            <textarea name="notas" rows="4"></textarea>
+        </label>
+        <button class="btn primary">Guardar</button>
+    </form>
+    <div class="card glass">
+        <h2>Historial</h2>
+        <div class="list">
+            {%for e in entries%}
+            <div>
+                <b>{{e.fecha}}</b>
+                <span>{{e.peso or '—'}} kg</span>
+                <small>{{e.entrenamiento or 'Entrenamiento'}} · {{e.minutos}} min</small>
+            </div>
+            {%else%}
+            <p class="muted">Aún no hay registros.</p>
+            {%endfor%}
+        </div>
+    </div>
+</section>
+{%endblock%}

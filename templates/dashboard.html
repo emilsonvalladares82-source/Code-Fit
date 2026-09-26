@@ -1,0 +1,95 @@
+{%extends 'base.html'%}
+{%block title%}Inicio · CodeFit{%endblock%}
+{%block content%}
+<section class="hero">
+    <div>
+        <span class="eyebrow">CODEFIT IA · TU ESPACIO</span>
+        <h1>Hola, <span>{{user.nombre}}</span> 👋</h1>
+        <p>Pequeños pasos, constancia y organización. Explora tus herramientas.</p>
+        <div class="actions">
+            <a class="btn primary" href="{{url_for('rutinas')}}">Ver rutinas</a>
+            <a class="btn ghost" href="{{url_for('perfil')}}">Personalizar</a>
+        </div>
+    </div>
+    <div class="hero-logo glass">
+        <div class="logo big">C</div>
+        <b>CodeFit</b>
+        <small>El código exacto para tu bienestar</small>
+    </div>
+</section>
+<section class="stats">
+    <div class="stat glass">
+        <small>IMC</small>
+        <strong>{{imc or '—'}}</strong>
+        <span>{{category or 'Calcula tu IMC'}}</span>
+    </div>
+    <div class="stat glass">
+        <small>OBJETIVO</small>
+        <strong>
+            {%if user.objetivo%}
+                {{user.objetivo.replace('_',' ')}}
+            {%else%}
+                Sin objetivo
+            {%endif%}
+        </strong>
+        <span>Nivel {{user.nivel}}</span>
+    </div>
+    <div class="stat glass">
+        <small>TIEMPO</small>
+        <strong>{{user.minutos_disponibles or 30}} min</strong>
+        <span>por sesión</span>
+    </div>
+</section>
+<section class="features">
+    <a class="feature glass" href="{{url_for('rutinas')}}">
+        <b>↗</b>
+        <h3>Rutinas</h3>
+        <p>Planes por nivel y objetivo.</p>
+    </a>
+    <a class="feature glass" href="{{url_for('ejercicios')}}">
+        <b>◈</b>
+        <h3>Ejercicios</h3>
+        <p>Biblioteca organizada.</p>
+    </a>
+    <a class="feature glass" href="{{url_for('progreso')}}">
+        <b>⌁</b>
+        <h3>Progreso</h3>
+        <p>Registra tus entrenamientos.</p>
+    </a>
+    <button class="feature glass" onclick="document.getElementById('aiFab').click()">
+        <b>✦</b>
+        <h3>CodeFit IA</h3>
+        <p>Adapta ideas a tu horario.</p>
+    </button>
+</section>
+<section class="card glass">
+    <span class="eyebrow">PERSONALIZACIÓN</span>
+    <h2>Genera un plan según tu disponibilidad</h2>
+    <form class="plan-form" id="planForm">
+        <select name="objetivo">
+            <option value="mejorar_condicion">Mejorar condición</option>
+            <option value="bajar_peso">Bajar de peso</option>
+            <option value="ganar_peso">Ganar peso</option>
+            <option value="ganar_fuerza">Ganar fuerza</option>
+        </select>
+        <select name="nivel">
+            <option value="principiante">Principiante</option>
+            <option value="intermedio">Intermedio</option>
+        </select>
+        <input name="minutos" type="number" min="10" max="180" value="{{user.minutos_disponibles or 30}}">
+        <input name="dias" placeholder="Lunes, Miércoles, Viernes" value="{{user.dias_disponibles or ''}}">
+        <button class="btn primary">Crear plan</button>
+    </form>
+    <div id="planResult"></div>
+</section>
+<div class="video-modal" id="videoModal" hidden>
+    <div class="video-modal-content glass" role="dialog" aria-modal="true" aria-labelledby="videoModalTitle">
+        <button class="video-modal-close" id="cerrarVideoModal" type="button" aria-label="Cerrar">×</button>
+        <h2 id="videoModalTitle">Demostración del ejercicio</h2>
+        <video id="ejercicioVideo" autoplay loop muted playsinline>
+            <source id="ejercicioVideoSource" src="{{url_for('static',filename='videos/')}}" type="video/mp4">
+            Tu navegador no puede reproducir este video.
+        </video>
+    </div>
+</div>
+{%endblock%}

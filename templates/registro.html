@@ -1,0 +1,31 @@
+{%extends 'auth_base.html'%}
+{%block title%}Registro · CodeFit{%endblock%}
+{%block content%}
+<section class="auth-card glass">
+    <div class="logo">C</div>
+    <h1>Crear cuenta</h1>
+    <p>Comienza tu recorrido en CodeFit.</p>
+    <form class="form" method="post">
+        <label>
+            Nombre
+            <input name="nombre" required>
+        </label>
+        <label>
+            Correo
+            <input type="email" name="correo" required>
+        </label>
+        <label>
+            Contraseña
+            <input type="password" name="contraseña" minlength="6" required>
+        </label>
+        <label>
+            Confirmar contraseña
+            <input type="password" name="confirmar" minlength="6" required>
+        </label>
+        <button class="btn primary wide">Crear cuenta</button>
+    </form>
+    <p class="muted center">
+        ¿Ya tienes cuenta? <a href="{{url_for('login')}}">Iniciar sesión</a>
+    </p>
+</section>
+{%endblock%}

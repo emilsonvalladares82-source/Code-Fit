@@ -1,0 +1,34 @@
+{% extends 'auth_base.html' %}
+
+{% block title %}
+	Login · CodeFit
+{% endblock %}
+
+{% block content %}
+	<section class="auth-card glass">
+        <div class="logo-container">
+			<img src="{{ url_for('static', filename='img/codefit_logo.png') }}" alt="" class="logo-login">
+        </div>
+
+		<h1>Bienvenido a <span>CodeFit</span></h1>
+		<p>Tu espacio para organizar actividad física y bienestar.</p>
+
+		<form class="form" method="post">
+			<label>
+				Correo
+				<input type="email" name="correo" required>
+			</label>
+
+			<label>
+				Contraseña
+				<input type="password" name="contraseña" required>
+			</label>
+
+			<button class="btn primary wide">Iniciar sesión</button>
+		</form>
+
+		<p class="muted center">
+			¿No tienes cuenta? <a href="{{ url_for('registro') }}">Crear cuenta</a>
+		</p>
+	</section>
+{% endblock %}

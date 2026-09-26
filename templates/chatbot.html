@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}CodeFit IA{% endblock %}
+{% block content %}
+<section class="hero compact">
+    <span class="eyebrow">PASO 06 · PERSONALIZACIÓN</span>
+    <h1>Habla con <span>CodeFit IA</span></h1>
+    <p>Cuéntale tu objetivo, experiencia y horario.</p>
+</section>
+<section class="card glass chatbot">
+    <div class="ai-messages large" id="fullAiMessages">
+        <div class="ai-bubble">Hola {{user.nombre}} 👋. ¿Qué quieres conseguir?</div>
+    </div>
+    <form class="ai-form" id="fullAiForm">
+        <input id="fullAiInput" placeholder="Ej. soy principiante y tengo 30 minutos..." required>
+        <button class="btn primary">Enviar</button>
+    </form>
+</section>
+{% endblock %}

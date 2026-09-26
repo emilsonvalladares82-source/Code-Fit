@@ -1,0 +1,68 @@
+{%extends 'base.html'%}
+{%block title%}Perfil · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">PERSONALIZA TU EXPERIENCIA</span>
+    <h1>Mi <span>perfil</span></h1>
+    <p>Usamos estos datos para organizar sugerencias generales.</p>
+</section>
+<form class="card glass form" method="post">
+    <label>
+        Nombre
+        <input value="{{user.nombre}}" disabled>
+    </label>
+    <label>
+        Correo
+        <input value="{{user.correo}}" disabled>
+    </label>
+    <div class="two-inputs">
+        <label>
+            Edad
+            <input type="number" name="edad" value="{{user.edad or ''}}">
+        </label>
+        <label>
+            Peso (kg)
+            <input type="number" step="0.1" name="peso" value="{{user.peso or ''}}">
+        </label>
+    </div>
+    <div class="two-inputs">
+        <label>
+            Altura (m)
+            <input type="number" step="0.01" name="altura" value="{{user.altura or ''}}">
+        </label>
+        <label>
+            Minutos
+            <input type="number" name="minutos" min="10" max="180" value="{{user.minutos_disponibles or 30}}">
+        </label>
+    </div>
+    <div class="two-inputs">
+        <label>
+            Objetivo
+            <select name="objetivo">
+                {%for v,l in [('bajar_peso','Bajar de peso'),('ganar_peso','Ganar peso'),('mejorar_condicion','Mejorar condición'),('ganar_fuerza','Ganar fuerza')]%}
+                <option value="{{v}}" {%if user.objetivo==v%}selected{%endif%}>{{l}}</option>
+                {%endfor%}
+            </select>
+        </label>
+        <label>
+            Nivel
+            <select name="nivel">
+                <option value="principiante" {%if user.nivel=='principiante'%}selected{%endif%}>Principiante</option>
+                <option value="intermedio" {%if user.nivel=='intermedio'%}selected{%endif%}>Intermedio</option>
+            </select>
+        </label>
+    </div>
+    <fieldset>
+        <legend>Días disponibles</legend>
+        <div class="days">
+            {%for d in ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']%}
+            <label>
+                <input type="checkbox" name="dias" value="{{d}}" {%if d in (user.dias_disponibles or '')%}checked{%endif%}>
+                {{d}}
+            </label>
+            {%endfor%}
+        </div>
+    </fieldset>
+    <button class="btn primary">Guardar perfil</button>
+</form>
+{%endblock%}

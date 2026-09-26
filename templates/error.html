@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Error {{ code }} · CodeFit{% endblock %}
+{% block content %}
+<section class="card glass">
+    <span class="eyebrow">ERROR {{ code }}</span>
+    <h1>{{ message }}</h1>
+    <a class="btn primary" href="{{ url_for('home') }}">Volver al inicio</a>
+</section>
+{% endblock %}

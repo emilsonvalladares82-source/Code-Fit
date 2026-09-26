@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}CodeFit IA{% endblock %}</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}">
+</head>
+<body>
+    {% if session.get('usuario_id') %}
+    <header class="topbar glass">
+        <a class="brand" href="{{url_for('dashboard')}}">
+            <b>C</b>
+            <span>Code<span>Fit</span> <small>IA</small></span>
+        </a>
+        <nav>
+            <a href="{{url_for('dashboard')}}">Inicio</a>
+            <a href="{{url_for('imc_page')}}">IMC</a>
+            <a href="{{url_for('rutinas')}}">Rutinas</a>
+            <a href="{{url_for('ejercicios')}}">Ejercicios</a>
+            <a href="{{url_for('progreso')}}">Progreso</a>
+            <a href="{{url_for('perfil')}}">Perfil</a>
+        </nav>
+        <a class="btn ghost small" href="{{url_for('logout')}}">Salir</a>
+    </header>
+    {% endif %}
+
+    <main class="page">
+        {% with ms=get_flashed_messages(with_categories=true) %}
+            {% for c,m in ms %}
+                <div class="flash {{c}}">{{m}}</div>
+            {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% if session.get('usuario_id') %}
+    <button class="ai-fab" id="aiFab">✦</button>
+    <section class="ai-window glass" id="aiWindow">
+        <div class="ai-head">
+            <b>CodeFit IA</b>
+            <button id="aiClose">×</button>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+            <div class="ai-bubble">Hola 👋 Cuéntame tu objetivo y tu horario.</div>
+        </div>
+        <form class="ai-form" id="aiForm">
+            <input id="aiInput" placeholder="Escribe tu mensaje...">
+            <button class="btn primary">Enviar</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <script src="{{url_for('static',filename='js/app.js')}}"></script>
+</body>
+</html>

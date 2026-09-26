@@ -1,0 +1,27 @@
+{%extends 'base.html'%}
+{%block title%}Rutinas · CodeFit{%endblock%}
+{%block content%}
+<section class="hero compact">
+    <span class="eyebrow">PASO 04 · ENTRENAMIENTO</span>
+    <h1>Elige tu <span>rutina</span></h1>
+    <p>Comienza según tu nivel y objetivo.</p>
+</section>
+<div class="chips">
+    <a href="{{url_for('rutinas')}}">Todas</a>
+    <a href="{{url_for('rutinas',nivel='principiante')}}">Principiante</a>
+    <a href="{{url_for('rutinas',nivel='intermedio')}}">Intermedio</a>
+</div>
+<section class="cards">
+    {%for r in routines%}
+    <article class="card glass">
+        <span class="pill">{{r.nivel}}</span>
+        <h3>{{r.nombre}}</h3>
+        <p>{{r.descripcion}}</p>
+        <small>{{r.duracion}} min · {{r.objetivo.replace('_',' ')}}</small>
+        <br>
+        <br>
+        <a class="btn primary" href="{{url_for('rutina',rid=r.id)}}">Ver rutina</a>
+    </article>
+    {%endfor%}
+</section>
+{%endblock%}
